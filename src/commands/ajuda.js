@@ -6,7 +6,7 @@ module.exports = {
   description: 'Lista todos os comandos ou mostra mais informações sobre um específico.',
   usage: '[comando]',
   cooldown: 10,
-  execute(_, message, args) {
+  execute(_, message, args, serverGame, games) {
     const data = [];
     const { commands } = message.client;
 

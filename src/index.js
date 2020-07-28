@@ -16,9 +16,11 @@ for (const file of commandFiles) {
   client.commands.set(command.name, command);
 }
 
+const games = new Map();
+
 client.once('ready', () => {
-  client.user.setActivity('aprenda a jogar com >ajuda', { type: 'STREAMING' });
-  console.log('-> Coup online');
+  client.user.setActivity('Plígma!', { type: 'PLAYING' });
+  console.log('-> Plígma online');
 });
 
 client.on('message', async (message) => {
@@ -67,7 +69,8 @@ client.on('message', async (message) => {
   }
 
   try {
-    command.execute(client, message, args);
+    const serverGame = games.get(message.guild.id);
+    command.execute(client, message, args, serverGame, games);
   } catch (error) {
     console.error(error);
     message.reply('ocorreu um erro ao tentar executar esse comando');
