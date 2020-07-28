@@ -40,7 +40,7 @@ module.exports = {
         users: [],
         hasStarted: false,
         channel,
-        shift: 0,
+        shift: -1,
         roundMessage: null,
         round: 0,
       };

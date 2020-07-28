@@ -3,13 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const nextRound = async (serverGame) => {
   const { users } = serverGame;
   serverGame.round += 1;
-  newRound(serverGame);
-
   serverGame.shift += 1;
   if (serverGame.shift === users.length) serverGame.shift = 0;
+
+  newRound(serverGame);
 };
 
 const handleReactions = (serverGame, msg) => {
+  const {
+    shift, channel, users,
+  } = serverGame;
+  const { user, cartas, moedas } = users[shift];
+
   serverGame.roundMessage = msg;
   msg.react('1️⃣');
   msg.react('2️⃣');
@@ -29,6 +34,33 @@ const handleReactions = (serverGame, msg) => {
       channel.send(`<@${u.id}> escolheu pegar 1 moeda.\nEssa jogada não pode ser contestada!`);
       serverGame.users[shift].moedas += 1;
       nextRound(serverGame);
+    } else if (r.emoji.name === '2️⃣') {
+      channel.send(`<@${u.id}> escolheu pegar 2 moedas.\nEssa jogada pode ser contestada por um Duque reagindo com ⚔️\n10 segundos para contestar!`)
+        .then((challengeMsg) => {
+          challengeMsg.react('⚔️');
+
+          const challengeFilter = (reaction, challenger) => ['⚔️'].includes(reaction.emoji.name) && challenger.bot === false && challenger.id !== u.id;
+          const challengeCollector = challengeMsg.createReactionCollector(challengeFilter, { max: 1, time: 10000, error: ['time'] });
+          challengeCollector.on('collect', (challengeReaction, challenger) => {
+            channel.send(`<@${challenger.id}> contestou a jogada de <@${u.id}>!\nOs jogadores tem mais 10 segundos para contestar se <@${challenger.id}> tem o Duque!`)
+              .then((revengeMsg) => {
+                revengeMsg.react('🛡️');
+
+                const revengeFilter = (reaction, avenger) => ['🛡️'].includes(reaction.emoji.name) && avenger.bot === false && avenger.id !== challenger.id;
+                const revengeCollector = revengeMsg.createReactionCollector(revengeFilter, { max: 1, time: 10000, error: ['time'] });
+                revengeCollector.on('collect', (revengeReaction, avenger) => {
+                  checkChallenge(serverGame, challenger, avenger, 'Duque');
+                });
+              });
+          });
+          challengeCollector.on('end', (collected, reason) => {
+            if (reason === 'time') {
+              channel.send(`Ninguém contestou e <@${u.id}> recebe 2 moedas!`);
+              serverGame.users[shift].moedas += 2;
+              nextRound(serverGame);
+            }
+          });
+        });
     }
   });
   collector.on('end', (collected, reason) => {
@@ -56,6 +88,7 @@ const newRound = async (serverGame) => {
     .addField('Embaixador', '✌️ - Trocar 2 cartas')
     .addField('Assassino', '🗡 - Assassinar alguem [3 moedas]');
 
+  channel.send(`Vez de <@${user.id}>`);
   if (round % 3 === 0 || round === 1) {
     channel.send(bareMessage).then((msg) => handleReactions(serverGame, msg));
   } else {
@@ -63,8 +96,12 @@ const newRound = async (serverGame) => {
   }
 };
 
-const checkChallenge = (target, challenger, card) => {
+const checkChallenge = (serverGame, target, challenger, card) => {
+  const {
+    channel, users,
+  } = serverGame;
 
+  channel.send('checkChallenge');
 };
 
 const removeCard = (target, amount) => {
