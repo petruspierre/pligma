@@ -41,6 +41,8 @@ module.exports = {
         hasStarted: false,
         channel,
         shift: 0,
+        roundMessage: null,
+        round: 0,
       };
 
       games.set(message.guild.id, gameContract);

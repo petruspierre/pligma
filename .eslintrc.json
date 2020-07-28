@@ -24,6 +24,7 @@
     "radix": "off",
     "no-unused-vars": "off",
     "no-await-in-loop": "off",
-    "prefer-destructuring": "off"
+    "prefer-destructuring": "off",
+    "no-use-before-define": "off"
   }
 }
